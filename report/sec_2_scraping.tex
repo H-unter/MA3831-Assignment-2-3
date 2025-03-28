@@ -1,0 +1,46 @@
+\section{Web Crawler}
+
+\subsection{Website Selection}
+
+
+
+\subsection{Web Scraping}
+
+To begin this analysis, we scrape the sitemap of \code{smallcaps.com.au}. This offers the benefit of having a consolidated list of all article URLs, eliminating the need to emulate human navigation through pages of website search results using \code{Selenium}. The \code{lxml} parser is used for this task due to its fast performance and capability to handle both XML and HTML scraping. \cref{tab:xml_article_counts} shows the distribution of the last modified date of the urls in the XML sitemap. 
+
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{lc}
+        \toprule
+        \textbf{Article Year} & \textbf{Number of Observations} \\
+        \midrule
+        2023 & 10,468 \\
+        2024 & 2,374 \\
+        2025 & 323 \\
+        \midrule
+        \textbf{Total} & \textbf{13,165} \\
+        \bottomrule
+    \end{tabular}
+    \caption{Number of Observations per Year}
+    \label{tab:xml_article_counts}
+\end{table}
+
+
+Now, individual article content needs to be scraped. The following listing uses \code{BeautifulSoup} and the \code{requests} library to extract the contents of a given URL, which was sourced from the sitemap. The \code{lxml} parser was chosen again for its speed, and since the necessary external C dependency had already been installed with the \code{lxml-xml} parser during the XML sitemap scraping, no additional setup was required \cite{beautiful_soup_documentation}
+
+The contents of the HTML were analysed and parsed into a dictionary capturing the title, author, date, sector, stock codes, and the article body, as demonstrated in the listing below. \code{BeautifulSoup} was used to extract data from the relevant tags. Below is an example output from the parsing process:
+
+\begin{lstlisting}[language=Python, caption={Example HTML extraction code use and dictionary response}, label={lst:html_extraction}]
+soup_test = extract_html_from_url('https://smallcaps.com.au/galan-lithium-directors-show-confidence-share-purchase/')
+parsed_dict = parse_html_to_dict(soup_test)
+parsed_dict
+
+{'title': 'Galan Lithium directors show confidence with $1.4 million share purchase',
+ 'author': 'Colin Hay',
+ 'date_string': 'May 23, 2024',
+ 'sector': 'Mining',
+ 'stock_codes': ['ASX:GLN'],
+ 'document': 'Galan Lithium (ASX: GLN) managing director Juan Pablo....}
+\end{lstlisting}
+
