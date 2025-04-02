@@ -1,8 +1,89 @@
 \section{Web Crawler}
 
+% Websites consumed. 
+% Website/data copyright considerations + limitations of the consumed domains with linkages to sampling design and ethical considerations +  Copyright of the chosen domains and linkages to appropriate legal frameworks 
+% Methodology of applying the web crawler/scraper
+% The Natural Language data, meta-data, or other data on each domain and how these data align to the issue  
+% Limitations of the WebCrawler and the harvested data. 
+
+
+% Technology components used for the web crawler with comparisons to other similar technology components
+% Complexity of the domains and where the targeted data resides 
+% Methodology and sequencing of the crawler(s), using the complexity, data structures and website access restrictions to optimise the crawler 
+% Methodology of storing harvested data
+
+\subsection{Data Type Selection}
+
+It is clear that a textual data corpus is required for the exploration of NLP tecquniques in this setting. There are numerous sources on the world wide web that were considered.
+
+The first source that was considered was the ASX market announcements \cite{asx_market_announcements}. The announcements are straight from the source, come at a high frequency, but come with the drawback of sometimes being mundaine and not helpful, the format being in a pdf document which is not conducide to text mining with tool such as \code{BeautifulSoup}, and it being against the terms of use of the ASX \cite{asx_terms_of_use}.
+
+The second source of data that was considered was social media platforms, in particular Twitter and Reddit. Using social media platforms would afford a large quantity of data, but with each document itself being small. Using social media also has the drawback of being unstructured, and also the text data using colloquial language and having spelling mistakes, with extensive preprocessing required as found in many papers \note{{put the papers here, say something about how social media users arent held to a standard to be relied upon for factual or accurate information}}
+
+In contrast, financial news articles are more factual than socual media, with the added benefit of being longer in length, having correct spelling and grammar. Furthermore, websites can offer more structure in the way they present their articles, with easy ways to scrape key metadata, \code{perhaps reference the next section where this is elaborated on}.
+
+
+\definecolor{rowgreen}{HTML}{D9EAD3} % light green, matches your screenshots
+
 \subsection{Website Selection}
 
+\Cref{tab:scraping_websites} shows the comparison of various websites that contain financial and market-related articles, evaluating their suitability for scraping.
 
+\begin{table*}[ht]
+    \centering
+    \scriptsize
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{@{}p{3.5cm}ccc p{6.2cm}@{}}
+    \toprule
+    \begin{tabular}[c]{@{}c@{}}\textbf{Website Name} \\ (URL hyperlinked)\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}\textbf{Scraping Permitted} \\ \textbf{in Terms of Use?}\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}\textbf{Allows Article} \\ \textbf{Scraping} \\ \textbf{in Robots.txt?}\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}\textbf{Uses} \\ \textbf{Cloudflare?}\end{tabular} &
+    \begin{tabular}[c]{@{}c@{}}\textbf{Notes of quality}\end{tabular} \\
+    \midrule
+    \href{https://www.marketindex.com.au/}{Market Index} & No & Yes & No & Company tags on articles \\
+    \href{https://au.finance.yahoo.com/}{Yahoo Finance} & No & No & No & no mentioned stock labelling. General politics also included which is difficult to relate to individual stocks \\
+    \rowcolor{rowgreen}
+    \href{https://tradingeconomics.com/}{Trading Economics} & Yes & Yes & No & General politics and economics also included — would require filtering (unstructured) \\
+    \href{https://www.afr.com/}{Financial Review} & No & No & No &  \\
+    \href{https://www.fool.com.au/}{The Motley Fool} & No & Yes & No &  \\
+    \href{https://www.smh.com.au/}{Sydney Morning Herald} & No & No & No &  \\
+    \href{https://themarketonline.com.au/}{The Market Online} & No & Yes & No &  \\
+    \rowcolor{rowgreen}
+    \href{https://www.abc.net.au/news/}{ABC News} & Yes & Yes & No & Regular news mixed with financial news, difficult to use, untagged stock market \\
+    \rowcolor{rowgreen}
+    \href{https://smallcaps.com.au/}{Small Caps} & Yes & Yes & No & Sitemap highly conducive to scraping. Stock codes provided in articles. All about stocks — no general politics. Static web content (use BeautifulSoup) \\
+    \href{https://www.morningstar.com.au/}{Morning Star} & No & Yes & No & No sitemap provided \\
+    \rowcolor{rowgreen}
+    \href{https://www.australianstockreport.com.au/}{Australian Stock Report} & Yes & Yes & No & Unstructured in comparison to other article sites \\
+    \rowcolor{rowgreen}
+    \href{https://stockhead.com.au/}{Stock Head} & Yes & Yes & No & Great sitemap but no list of stock codes in article \\
+    \href{https://www.theaustralian.com.au/}{The Australian} & No & No & No &  \\
+    \href{https://hotcopper.com.au/}{Hot Copper} & No & Yes & No &  \\
+    \bottomrule
+    \end{tabular}
+    \caption{Comparison of financial and market-related websites for article scraping suitability. Green rows indicate favourable conditions for scraping.}
+    \label{tab:scraping_websites}
+\end{table*}
+    
+% limitations of the web crawler and the harvested data
+
+The smallcaps website was selected for the following reasons:
+- no dynmaic content, so no elaborate web scraping web driver is required, cna just use \code{BeautifulSoup}
+- the website is all about stocks, so no need to filter out non-stock related articles
+- well labelled articles with stock codes
+
+there is however drawbacks to this particular website and especially only choosing one website from which to scrape from.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[height=200px]{figures/example_article.png} % Image filename
+    \centering
+    \caption{Example Article \cite{example_smallcaps_article}, containing fields such as title, author, date, and stock codes} % Caption
+    \label{fig:example_article} % Label
+\end{figure}
+
+asdf
 
 \subsection{Web Scraping}
 
