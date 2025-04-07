@@ -10,11 +10,11 @@
     \begin{tikzpicture}[item/.style={circle,draw,thick,align=center}, itemc/.style={item,on chain,join}]
     \begin{scope}[start chain=going right,nodes=itemc,every
     join/.style={-latex,very thick},local bounding box=chain]
-    \path node (A0) {$A$} node (A1) {$A$} node (A2) {$A$} node[xshift=2em] (At)
+    \path node[mydarkblue, draw=myblue, fill=myblue!20] (A0) {$A$} node[mydarkblue, draw=myblue, fill=myblue!20] (A1) {$A$} node [mydarkblue, draw=myblue, fill=myblue!20] (A2) {$A$} node[mydarkblue, draw=myblue, fill=myblue!20, xshift=2em] (At)
     {$A$};
     \end{scope}
     \node[left=1em of chain,scale=2] (eq) {$=$};
-    \node[left=2em of eq,item] (AL) {$A$};
+    \node[mydarkblue, draw=myblue, fill=myblue!20,left=2em of eq,item] (AL) {$A$};
     \path (AL.west) ++ (-1em,2em) coordinate (aux);
     \draw[very thick,-latex,rounded corners] (AL.east) -| ++ (1em,2em) -- (aux) 
     |- (AL.west);
