@@ -20,7 +20,7 @@ The first source that was considered was the ASX market announcements \cite{asx_
 
 The second source of data that was considered was social media platforms, in particular Twitter and Reddit. Using social media platforms would afford a large quantity of data, but with each document itself being small. Using social media also has the drawback of being unstructured, and also the text data using colloquial language and having spelling mistakes, with extensive preprocessing required as found in many papers \note{{put the papers here, say something about how social media users arent held to a standard to be relied upon for factual or accurate information}}
 
-In contrast, financial news articles are more factual than socual media, with the added benefit of being longer in length, having correct spelling and grammar. Furthermore, websites can offer more structure in the way they present their articles, with easy ways to scrape key metadata, \code{perhaps reference the next section where this is elaborated on}.
+In contrast, financial news articles are more factual than socual media, with the added benefit of being longer in length, having correct spelling and grammar. Furthermore, websites can offer more structure in the way they present their articles, with easy ways to scrape key metadata, \note{perhaps reference the next section where this is elaborated on}.
 
 
 \definecolor{rowgreen}{HTML}{D9EAD3} % light green, matches your screenshots
@@ -112,16 +112,29 @@ Now, individual article content needs to be scraped. The following listing uses 
 
 The contents of the HTML were analysed and parsed into a dictionary capturing the title, author, date, sector, stock codes, and the article body, as demonstrated in the listing below. \code{BeautifulSoup} was used to extract data from the relevant tags. Below is an example output from the parsing process:
 
-\begin{lstlisting}[language=Python, caption={Example HTML extraction code use and dictionary response}, label={lst:html_extraction}]
-soup_test = extract_html_from_url('https://smallcaps.com.au/galan-lithium-directors-show-confidence-share-purchase/')
-parsed_dict = parse_html_to_dict(soup_test)
-parsed_dict
-
-{'title': 'Galan Lithium directors show confidence with $1.4 million share purchase',
- 'author': 'Colin Hay',
- 'date_string': 'May 23, 2024',
- 'sector': 'Mining',
- 'stock_codes': ['ASX:GLN'],
- 'document': 'Galan Lithium (ASX: GLN) managing director Juan Pablo....}
-\end{lstlisting}
-
+\begin{minipage}{0.4\textwidth}
+    \begin{lstlisting}[language=Python, caption={Example HTML extraction code}, label={lst:html_extraction}]
+    soup_test = extract_html_from_url('https://smallcaps.com.au/big-banks-interest-rate-rise-qantas-acquires-alliance-qbe-forecasts-hit/')
+    parsed_dict = parse_html_to_dict(soup_test)
+    parsed_dict
+    \end{lstlisting}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.56\textwidth}
+    \centering
+    \begin{tabular}{rl}
+    \toprule
+    \textbf{Key} & \textbf{Value} \\
+    \midrule
+    \code{'title'} & \code{'Big banks pass on int...'} \\
+    \code{'author'} & \code{'Louis Allen'} \\
+    \code{'date'} & \code{'May 10, 2022'} \\
+    \code{'sector'} & \code{'ASX200'} \\
+    \code{'stock_codes'} & \code{['ASX: CBA', 'ASX: ANZ', ...]} \\
+    \code{'document'} & \code{"Australia’s four maj..."} \\
+    \bottomrule
+    \end{tabular}
+    \captionof{table}{Parsed dictionary converted into a table}
+    \label{tab:parsed_dict}
+    \end{minipage}
+    

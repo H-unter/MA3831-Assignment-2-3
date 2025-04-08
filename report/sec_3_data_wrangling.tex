@@ -1,0 +1,38 @@
+\section{Exploratory Data Analysis}
+
+\Cref{tab:parsed_dict} depicts the structure of the data. Collected from smallcaps was \note{1532} articles. \Cref{fig:articles_per_month} depicts the distribution of the scraped articles. The reports \text{sector} label is visualised in \cref{fig:sector_industry_distribution}, provided by the smallcaps website. The \text{industry} label is provided by the ASX website \cite{asx_industry_labels}. It is evident the high proportion of articles in the mining sector, potentially leading to bias in any investigation that is conducted in this data without any other intervention. 
+
+Analysing the textual corpus, \cref{fig:document_length_distribution} shows the distribution of document length, where it can be seen that the mean document wordcount is \note{409} words, which combined with the quantity of data collected should be sufficient for training a machine learning model \note{ a source for this would be better than hopes and prayers}
+
+\begin{figure}[ht]
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/articles_per_month.pdf}
+        \caption{Quantity of Scraped Articles per Month}
+        \label{fig:articles_per_month}
+        
+        \vspace{1em}
+        
+        \includegraphics[width=\textwidth]{figures/document_length_distribution.pdf}
+        \caption{Distribution of Document Length}
+        \label{fig:document_length_distribution}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/sector_industry_distribution.pdf}
+        \caption{Distribution of Articles by Sector, using the \textit{smallcaps} industry label and the ASX sector label \cite{asx_industry_labels}}
+        \label{fig:sector_industry_distribution}
+    \end{minipage}
+\end{figure}
+
+\section{Feature Extraction}
+
+\subsection{Sentiment Analysis}
+
+We model the sentiment of an article using the VADER (Valence Aware Dictionary and sEntiment Reasoner), as this has shown to having promising results in a similar setting, as found by \cite{ko_lstm}. This implementation of vader is assisted through a Geeks for Geeks instructional article \cite{geeksforgeeks_vader}
+
+VADER's rule-based approach relies on fixed lexicons and doesn't fully capture the context-dependent sentiment embedded in text, whereas BERT's deep contextual embeddings allow it to discern and represent nuanced sentiment more effectively.
+FinBERT is a domain-specific adaptation of the BERT model, fine-tuned on financial texts to accurately determine the sentiment expressed in this particular context \cite{araci_finbert}. This model was retrieved using the huggingface library \cite{prosusai_finbert}
+
+While this sounds better, it relies on the data being labelled, making training on a large corupus of data unfeasible. We therefore utilise the finbert-tone pretrained transformer which is the FinBERT model trained on 10,000 manually annotated documents (positive, negative, neutral) sentences from analyst reports.

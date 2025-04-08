@@ -1,6 +1,6 @@
 \documentclass[11pt]{article} 
 \def\name{Hunter Kruger-Ilingworth}
-\def\doctitle{Assignment 3 - Capstone Project}
+\def\doctitle{Capstone Project - Financial News Sentiment Analysis}
 \def\subjectcode{MA3831}
 \def\studentnumber{14198489}
 \input{header.sty}
@@ -58,13 +58,24 @@
 \begin{document}
 
 
-    % Title Page
-    \Huge{\subjectcode \  \doctitle} \\
-    \large{\textbf{\name \ - \studentnumber}} \\
+    % Create the title page
+    \begin{titlepage}
+        \maketitle
+        \thispagestyle{empty} %suppresses page numbering on the title page
+    \end{titlepage}
+
+    % Table of Contents
+    \thispagestyle{empty} % Suppresses page numbering on the contents page
+    \onecolumn
+    \tableofcontents
+    \listoffigures
+    \listoftables
+    \clearpage
 
     \input{sec_1_intro.tex}
     \input{sec_2_scraping.tex}
-    \input{sec_3_ml.tex}
+    \input{sec_3_data_wrangling.tex}
+    \input{sec_4_ml.tex}
 
     \newpage
     \onecolumn
