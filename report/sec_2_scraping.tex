@@ -14,20 +14,22 @@
 
 \subsection{Data Type Selection}
 
-It is clear that a textual data corpus is required for the exploration of NLP tecquniques in this setting. There are numerous sources on the world wide web that were considered.
+Several data sources were considered for this investigation.
 
-The first source that was considered was the ASX market announcements \cite{asx_market_announcements}. The announcements are straight from the source, come at a high frequency, but come with the drawback of sometimes being mundaine and not helpful, the format being in a pdf document which is not conducide to text mining with tool such as \code{BeautifulSoup}, and it being against the terms of use of the ASX \cite{asx_terms_of_use}.
+The ASX market announcements \cite{asx_market_announcements} were initially examined. These are direct from the source and released frequently, but are often mundane or irrelevant. They are also provided in PDF format, which is not conducive to text mining using tools such as \code{BeautifulSoup}. Furthermore, usage is restricted under the ASX's terms of service \cite{asx_terms_of_use}.
 
-The second source of data that was considered was social media platforms, in particular Twitter and Reddit. Using social media platforms would afford a large quantity of data, but with each document itself being small. Using social media also has the drawback of being unstructured, and also the text data using colloquial language and having spelling mistakes, with extensive preprocessing required as found in many papers \note{{put the papers here, say something about how social media users arent held to a standard to be relied upon for factual or accurate information}}
+Social media platforms, particularly Twitter and Reddit, were also considered. These offer a large volume of data, albeit with short, unstructured content. Posts commonly include colloquial language, spelling errors, requiring extensive preprocessing \cite{kolasani_twitter_nn}; furthermore being less factual and trustworthy than other sources \cite{heiden_lstm}. Unlike financial journalists, social media users are not held to standards of factual accuracy, limiting the reliability of this source.
 
-In contrast, financial news articles are more factual than socual media, with the added benefit of being longer in length, having correct spelling and grammar. Furthermore, websites can offer more structure in the way they present their articles, with easy ways to scrape key metadata, \note{perhaps reference the next section where this is elaborated on}.
+In contrast, financial news articles are typically factual, well-written, and longer in length. Web-based sources often provide a more structured format and accessible metadata, making them better suited to text mining. It is for these reasons that financial news articles were selected as the primary data source for this investigation. 
 
-
-\definecolor{rowgreen}{HTML}{D9EAD3} % light green, matches your screenshots
 
 \subsection{Website Selection}
 
-\Cref{tab:scraping_websites} shows the comparison of various websites that contain financial and market-related articles, evaluating their suitability for scraping.
+\Cref{tab:scraping_websites} shows the comparison of various websites that contain financial and market-related articles, evaluating their suitability for scraping. Copyright is a key legal consideration when using original written works. Under Section 113P of the Copyright Act 1968, Australian copyright law permits educational institutions to copy and communicate works for educational purposes under the 'fair dealing' provisions \cite{copyright_act}.
+
+Websites were assessed based on their suitability for article scraping, with key criteria including explicit permission in terms of use, presence of disallow/allow directives in \code{robots.txt}, use of scraping inhibiting in the form of Cloudflare \cite{does_it_use_cloudflare}, and article structure (e.g. presence of stock codes or site metadata). As shown in \Cref{tab:scraping_websites}, many domains impose legal or technical restrictions on automated data collection, presenting ethical limitations to their use. For example, scraping from websites that explicitly disallow it in their terms of service may breach legal and institutional ethical standards. From a sampling design perspective, sites with structured article metadata and consistent tagging (e.g. Trading Economics, Stock Head) were preferred to ensure replicable and unbiased data collection. Conversely, general news outlets with mixed content and unstructured articles (e.g. ABC News, Yahoo Finance) were excluded due to increased noise and ambiguity in topic association.
+
+\definecolor{rowgreen}{HTML}{D9EAD3} 
 
 \begin{table*}[ht]
     \centering
@@ -39,7 +41,7 @@ In contrast, financial news articles are more factual than socual media, with th
     \begin{tabular}[c]{@{}c@{}}\textbf{Scraping Permitted} \\ \textbf{in Terms of Use?}\end{tabular} &
     \begin{tabular}[c]{@{}c@{}}\textbf{Allows Article} \\ \textbf{Scraping} \\ \textbf{in Robots.txt?}\end{tabular} &
     \begin{tabular}[c]{@{}c@{}}\textbf{Uses} \\ \textbf{Cloudflare?}\end{tabular} &
-    \begin{tabular}[c]{@{}c@{}}\textbf{Notes of quality}\end{tabular} \\
+    \begin{tabular}[c]{@{}c@{}}\textbf{General Notes}\end{tabular} \\
     \midrule
     \href{https://www.marketindex.com.au/}{Market Index} & No & Yes & No & Company tags on articles \\
     \href{https://au.finance.yahoo.com/}{Yahoo Finance} & No & No & No & no mentioned stock labelling. General politics also included which is difficult to relate to individual stocks \\
@@ -68,12 +70,7 @@ In contrast, financial news articles are more factual than socual media, with th
     
 % limitations of the web crawler and the harvested data
 
-The smallcaps website was selected for the following reasons:
-- no dynmaic content, so no elaborate web scraping web driver is required, cna just use \code{BeautifulSoup}
-- the website is all about stocks, so no need to filter out non-stock related articles
-- well labelled articles with stock codes
-
-there is however drawbacks to this particular website and especially only choosing one website from which to scrape from.
+\textit{Small Caps} was selected due to its static structure, enabling lightweight scraping using \code{BeautifulSoup}. All content is stock-focused, removing the need for filtering, and articles are consistently tagged with stock codes, simplifying parsing. However, using a single source limits dataset diversity and may bias coverage towards small-cap companies, or a particular sector, or reflect the opinions of a few authors. 
 
 \begin{figure}[h]
     \centering
@@ -83,11 +80,11 @@ there is however drawbacks to this particular website and especially only choosi
     \label{fig:example_article} % Label
 \end{figure}
 
-asdf
-
 \subsection{Web Scraping}
 
-To begin this analysis, we scrape the sitemap of \code{smallcaps.com.au}. This offers the benefit of having a consolidated list of all article URLs, eliminating the need to emulate human navigation through pages of website search results using \code{Selenium}. The \code{lxml} parser is used for this task due to its fast performance and capability to handle both XML and HTML scraping. \cref{tab:xml_article_counts} shows the distribution of the last modified date of the urls in the XML sitemap. 
+For the entirety of the scraping process, although the \code{robots.txt} file did not specify a scraping frequency, request throttling was implemented as a matter of ethical practice to minimise server load.
+
+One merit contributing to the selection of \textit{Small Caps} was its XML sitemap, which provides a consolidated list of article URLs. This removes the need to emulate page navigation with tools like \code{Selenium}. Instead, the sitemap is scraped using the \code{lxml} parser for its speed and ability to handle both XML and HTML. \Cref{tab:xml_article_counts} shows the distribution of last modified dates for articles listed in the sitemap.
 
 
 \begin{table}[h]
@@ -103,7 +100,7 @@ To begin this analysis, we scrape the sitemap of \code{smallcaps.com.au}. This o
         \textbf{Total} & \textbf{13,165} \\
         \bottomrule
     \end{tabular}
-    \caption{Number of Observations per Year}
+    \caption{Number of Observations per Year As reported by the XML Sitemap Last Modified Date}
     \label{tab:xml_article_counts}
 \end{table}
 
