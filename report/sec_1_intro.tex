@@ -7,7 +7,35 @@
 
 \note{need a proper introduction to the topic and THEN relating it to a data science problem}
 
-Predicting the stock market is a topic of great intrest to many people.  News and consumer sentiment play a crucial role in influencing stock prices, as traders continuously monitor financial news and social media to assess supply, demand, and market trends. This process requires constant tracking, interpretation, and decision-making to respond effectively to market fluctuations. It is therefore evident that an NLP system could be of great use, being able to (1) summarise articles and identify key information and (2) provide sentiment variables as input features for a stock price prediction model.
+Predicting the movements of the stock market is a long standing challenge. Its erratic and volatile nature leads many to believe that predicting it is a fools game, with even experts in the field unable to consistently outperform the market \cite{efh_article,swedroe_spiva,gunnars2024beatmarket}. The Efficient Market Hypothesis (EMH) claims that asset prices quickly reflect all available information \cite{efh_article}, it follows that incorerating information and sentiment from sources across the internet may improve the performance of stock price prediction models to addess this age old problem. herd behavior and emotions can drive price swings beyond fundamentals \cite{greyling_sentiment}. 
+
+Many efforts have been made to predict stock price movements, with a variety of methods employed, with machine learning being particularly popular in recent years \cite{al_literature_review}. 
+
+Sentiment, particularly in recent times on the world wide web present a unique opportunity to leverage in this space. Online financial discourse is heavily concentrated across a few key domains, including social platforms (e.g., Reddit's r/WallStreetBets), news aggregators (e.g., Yahoo Finance), and article-based financial outlets (e.g., Bloomberg), and market announcements \cite{asx_market_announcements} . These domains offer continuous textual data that offer differing levels of up to date information and consumer sentiment.
+
+A literature review conducted by \cite{al_literature_review} analysed 81 papers  from January 2015 to June 2020, finding that support vector machines (SVM) were the most popular method, with 26.13\% of the analysed papers using them, followed by random forest (RF) (15.32\%), and long short term memory (LSTM) (13.51\%) 
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/literature_review_model_proportions.png}
+        \caption{Proportion of Each Stock Price Prediction method \cite{al_literature_review}}
+        \label{fig:first_label}
+    \end{minipage}\hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/literature_review_data_source_propotion.png}
+        \caption{Proportion of Each of the Studies' Data Source \cite{al_literature_review}}
+        \label{fig:second_label}
+    \end{minipage}
+\end{figure}
+
+
+
+NLP techniques, not only have been proven applicable to the prediciton of stock price, but can also offer value through reducing the burden of manual newsd mmontoiring and analysis that is required by a day trader.
+
+
 
 % maybe put a table of literature review here
 
