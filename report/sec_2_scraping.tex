@@ -79,19 +79,27 @@ Websites were assessed based on their suitability for article scraping, with key
     \caption{Example Article \cite{example_smallcaps_article}, containing fields such as title, author, date, and stock codes} % Caption
     \label{fig:example_article} % Label
 \end{figure}
+ 
+\clearpage
 
 \subsection{Web Scraping}
 
-For the entirety of the scraping process, although the \code{robots.txt} file did not specify a scraping frequency, request throttling was implemented as a matter of ethical practice to minimise server load.
+Although \code{robots.txt} did not specify a scraping frequency, throttling was implemented to reduce server load as a matter of ethical practice. \textit{Small Caps} was selected in part due to its exposed XML sitemap, which simplifies article discovery by listing URLs directly—avoiding the need to emulate navigation behaviour using heavier tools like \textit{Selenium}. Instead, the sitemap is parsed using \code{lxml} with \code{BeautifulSoup}, which is significantly faster and less resource-intensive for static content.
 
-One merit contributing to the selection of \textit{Small Caps} was its XML sitemap, which provides a consolidated list of article URLs. This removes the need to emulate page navigation with tools like \code{Selenium}. Instead, the sitemap is scraped using the \code{lxml} parser for its speed and ability to handle both XML and HTML. \Cref{tab:xml_article_counts} shows the distribution of last modified dates for articles listed in the sitemap.
+Given the site's predictable structure and absence of JavaScript rendering, \textit{Selenium} was deemed unnecessary. This reduces scraping complexity and improves runtime efficiency. \cref{code:xml_scrape_function} shows the sitemap scraping function, which extracts article metadata including title and last-modified date. As shown in \cref{code:xml_scrape_call}, each paginated sitemap is queried sequentially, filtered for article URLs, and written to a local CSV file. This storage format was chosen for ease of inspection and downstream processing.
 
+\Cref{tab:xml_article_counts} shows the temporal distribution of articles scraped, based on the last modified date in the sitemap.
 
-\begin{table}[h]
-    \centering
+\begin{minipage}{0.48\textwidth}
+    \lstinputlisting[language=Python, caption=Definition of xml sitemap scraping function, label=code:xml_scrape_function]{../code/report_code_chunks/xml_scrape_function.py}
+\end{minipage}
+\hfill
+\begin{minipage}{0.48\textwidth}
+    \lstinputlisting[language=Python, caption=Code to use the xml scraping function, label=code:xml_scrape_call]{../code/report_code_chunks/xml_scrape_call.py}
+    \vspace{2cm}
     \begin{tabular}{lc}
         \toprule
-        \textbf{Article Year} & \textbf{Number of Observations} \\
+        \textbf{Year} & \textbf{Number of Observations} \\
         \midrule
         2023 & 10,468 \\
         2024 & 2,374 \\
@@ -100,38 +108,51 @@ One merit contributing to the selection of \textit{Small Caps} was its XML sitem
         \textbf{Total} & \textbf{13,165} \\
         \bottomrule
     \end{tabular}
-    \caption{Number of Observations per Year As reported by the XML Sitemap Last Modified Date}
+    \captionof{table}{Number of Observations per Year As reported by the XML Sitemap Last Modified Date}
     \label{tab:xml_article_counts}
+\end{minipage}
+
+
+
+
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{rl}
+        \toprule
+        \textbf{Key} & \textbf{Value} \\
+        \midrule
+        \code{'title'} & \code{'Big banks pass on int...'} \\
+        \code{'author'} & \code{'Louis Allen'} \\
+        \code{'date'} & \code{'May 10, 2022'} \\
+        \code{'sector'} & \code{'ASX200'} \\
+        \code{'stock_codes'} & \code{['ASX: CBA', 'ASX: ANZ',...]} \\
+        \code{'document'} & \code{"Australia’s four maj..."} \\
+        \bottomrule
+    \end{tabular}
+    \caption{Parsed dictionary example converted into a table}
+    \label{tab:parsed_dict}
 \end{table}
 
 
-Now, individual article content needs to be scraped. The following listing uses \code{BeautifulSoup} and the \code{requests} library to extract the contents of a given URL, which was sourced from the sitemap. The \code{lxml} parser was chosen again for its speed, and since the necessary external C dependency had already been installed with the \code{lxml-xml} parser during the XML sitemap scraping, no additional setup was required \cite{beautiful_soup_documentation}
+Once the sitemap URLs were gathered, article content was scraped individually; once again using the \code{requests} library and \code{BeautifulSoup} with the \code{lxml} parser. The article scraping function is shown in \cref{code:article_scraping_function}, where it is seen that the target data with the key metadata resided within HTML containers, enabling reliable extraction of fields such as article title, author, date, sector, body text, and stock codes. 
+
+To allow for incremental scraping and avoid reprocessing, existing scraped articles were tracked via CSV and excluded in subsequent runs. Requests were throttled with a 3-second delay between each fetch to reduce server load. Output was stored locally in a raw CSV format, enabling later augmentation and processing while keeping the collection process transparent and reproducible. The scraping code can be seen in \cref{code:article_scrape_function_call}. 
+
+\lstinputlisting[language=Python, caption=Article Scraping function, label=code:article_scraping_function]{../code/report_code_chunks/article_scrape_function.py}
+
+\lstinputlisting[language=Python, caption=Code to Parse Websites in xml Sitemap, label=code:article_scrape_function_call]{../code/report_code_chunks/xml_scrape_call.py}
+
+
+
+
+
 
 The contents of the HTML were analysed and parsed into a dictionary capturing the title, author, date, sector, stock codes, and the article body, as demonstrated in the listing below. \code{BeautifulSoup} was used to extract data from the relevant tags. Below is an example output from the parsing process:
 
-\begin{minipage}{0.4\textwidth}
-    \begin{lstlisting}[language=Python, caption={Example HTML extraction code}, label={lst:html_extraction}]
-    soup_test = extract_html_from_url('https://smallcaps.com.au/big-banks-interest-rate-rise-qantas-acquires-alliance-qbe-forecasts-hit/')
-    parsed_dict = parse_html_to_dict(soup_test)
-    parsed_dict
-    \end{lstlisting}
-    \end{minipage}
-    \hfill
+
     \begin{minipage}{0.56\textwidth}
     \centering
-    \begin{tabular}{rl}
-    \toprule
-    \textbf{Key} & \textbf{Value} \\
-    \midrule
-    \code{'title'} & \code{'Big banks pass on int...'} \\
-    \code{'author'} & \code{'Louis Allen'} \\
-    \code{'date'} & \code{'May 10, 2022'} \\
-    \code{'sector'} & \code{'ASX200'} \\
-    \code{'stock_codes'} & \code{['ASX: CBA', 'ASX: ANZ', ...]} \\
-    \code{'document'} & \code{"Australia’s four maj..."} \\
-    \bottomrule
-    \end{tabular}
-    \captionof{table}{Parsed dictionary converted into a table}
-    \label{tab:parsed_dict}
+    
 \end{minipage}
     
