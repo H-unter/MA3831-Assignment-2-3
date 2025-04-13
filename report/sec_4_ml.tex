@@ -34,14 +34,16 @@ The LSTM architecture and training utilised the following hyperparameters:
     \item Optimiser: Adam \((\alpha = 0.001,\ \beta_1 = 0.9,\ \beta_2 = 0.999,\ \epsilon = 1 \times 10^{-7})\)
 \end{itemize}
 
+These hyperparameters were chosen based on similar implmentations \cite{hyperparameters,rnn_example,adam_keras_api_docs}
 
-The Adam optimiser was used due to it being "computationally efficient, having little memory requirement... and is well suited for problems that are large in terms of data/parameters" \cite{adam_keras_api_docs,adam_paper}, in addition to being prevalent in existing online implementations. Sources suggest the use of these hyperparameters for the Adam optimiser \cite{hyperparameters,adam_keras_api_docs}
+The Adam optimiser was used due to it being "computationally efficient, having little memory requirement... and is well suited for problems that are large in terms of data/parameters" \cite{adam_keras_api_docs,adam_paper}, in addition to being prevalent in existing online implementations.
 
-The model architecture consisted of two LSTM layers: the first with 64 units and \texttt{tanh} activation, returning sequences; the second with 32 units, also using \texttt{tanh}. These layer sizes were based on the model structure presented in \cite{heiden_lstm}. A final dense output layer with a single neuron used \texttt{tanh} activation, rather than the paper's \texttt{relu} due to inconsistent convergence during model training. The model was trained using the mean squared error loss function with a batch size of 64. Rather than a fixed number of epochs, early stopping was applied to halt training if validation loss failed to improve over 10 consecutive epochs.
+The model architecture consisted of two LSTM layers: the first with 64 units and \texttt{tanh} activation, returning sequences; the second with 32 units, also using \texttt{tanh}. These layer sizes were based on the model structure presented in \cite{heiden_lstm}. A final dense output layer with a single neuron used \texttt{tanh} activation, rather than the paper's \texttt{relu} due to inconsistent convergence during model training. The model was trained using the mean squared error loss function with a batch size of 64, which have been shown to be suitable for LSTMS \cite{hyperparameters,rnn_example}. Rather than a fixed number of epochs, early stopping was applied to halt training if validation loss failed to improve over 10 consecutive epochs.
 
 To further prevent overfitting, the training set was internally split into a 70/30 training-validation partition, while a separate 30\% of the original data was retained for final testing. Loss versus epoch plots were generated to monitor model convergence, with \Cref{fig:loss_plot} showing that early stopping effectively halted training once performance plateaued. The models were trained to optimise validation loss, to ensure applicability to unseen data.
 
-Model performance was then compared across the three datasets— the control model, VADER (with price data) model, and BERT (with price data) model assess the impact of sentiment features on predictive accuracy.
+Model performance was then compared across the three datasets— the control model, VADER (with price data) model, and BERT (with price data) model assess the impact of sentiment features on predictive accuracy. The model training loss vs epoch shows that the models converged well, with the sentiment features taking longer to converge than the control model, due to the increased number of inupt features. 
+
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.5\textwidth]{figures/RAD_model_training_loss.pdf}
@@ -51,14 +53,36 @@ Model performance was then compared across the three datasets— the control mod
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.75\textwidth]{figures/residuals_CBA.pdf}
+    \includegraphics[width=\linewidth]{figures/residuals_CBA.pdf}
     \caption{Model Performance of CBA (Commonwealth Bank) LSTM model}
     \label{fig:model_performance_cba}
 \end{figure}
 
-It was found that when attempting to predict the time-series price movement of individual stocks, sentiment data did not meaningfully improve predictive performance. This limitation was largely due to the sparsity of news coverage per stock. As shown in \Cref{fig:stock_code_distribution}, even the most frequently mentioned stock, \textit{ASX:BGD}, appeared in only 40 articles over a 16-month period—equating to just 2.5 articles per month. Such sparsity undermines the reliability and sustainability of sentiment-driven predictive models, a challenge also identified in literature \cite{zhang_markov_model}.
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{lccccc}
+        \toprule
+        \textbf{Model} & \textbf{BGD (Mining)} & \textbf{BOE (Energy)} & \textbf{CBA (Banking)} & \textbf{PIL (Tech)} & \textbf{RAD (Healthcare)} \\
+        \midrule
+        Control & 0.010008 & 0.006988 & 0.010436 & 0.018697 & 0.001870 \\
+        Vader   & 0.016969 & 0.006399 & 0.014232 & 0.005896 & 0.001202 \\
+        BERT    & 0.017634 & 0.006984 & 0.011358 & 0.015211 & 0.001345 \\
+        \bottomrule
+    \end{tabular}
+    \caption{MSE computed across selected stocks and sectors (lower is better).}
+    \label{tab:single_stock_performance}
+\end{table}
 
-To address this, rather than sourcing more data from additional platforms, the approach was pivoted towards predicting the broader ASX200 index. This shift not only mitigates the sparsity issue but also allows the model to capture macroeconomic sentiment and general political news, which are more consistently reported and likely to influence overall market trends.
+
+
+\Cref{fig:model_performance_cba} shows the model performance of the LSTM model trained on the CBA (Commonwealth Bank) data, a typical result seen across multiple stocks, and \cref{tab:single_stock_performance} shows a complete summary of the stock codes tested with the LSTM method. It is evident that the incorperating sentiment data is seen to decrease the performance of the model in the case of BGD, CBA; and improves the performance in the case of BOE, PIL, and RAD, with VADER models having a lower MSE. 
+
+This demonstrates that sentiment data does not meaningfully improve the predictive performance of the model.This performance may be largely due to the sparsity of news coverage per stock. As shown in \Cref{fig:stock_code_distribution}, even the most frequently mentioned stock, \textit{ASX:BGD}, appeared in only 40 articles over a 16-month period—equating to just 2.5 articles per month. Such sparsity undermines the reliability and sustainability of sentiment-driven predictive models, a challenge also identified in literature \cite{zhang_markov_model}.
+
+To address this, rather than sourcing more data from additional platforms, an alternate solution was posited, to predict the broader ASX200 index and verify if sparsity was the reason for the poor predictive performance of the sentiment. This shift not only mitigates the sparsity issue but also allows the model to capture macroeconomic sentiment and general political news, which are more consistently reported and likely to influence overall market trends.
 
 performing a similar analysis on just the asx200 index and incorperating articles that are in SmallCaps' 'hot topics' category (which is general news that pertains to an industry), and also mention stocks within the asx200. This way, we can include general politics and other news that may affect the index as a whole. 
+
+
+
 
