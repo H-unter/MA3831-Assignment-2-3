@@ -2,12 +2,6 @@
 
 \section{Machine Learning}
 
-After having sraped the articles for the documents \note{and sentiments?} a machine learning model was developed to predict stock price. Machine learning, and particularly neaural networks, are prevailent in the field of stock price prediction \cite{al_literature_review}. \Cref{fig:nn,fig:rnn} show the structure of a typical feed forward neural network and a recurrent neural network. Recurrent neural networks (RNNS), and others like RNNS, are designed to solve time series problems, and are therefore particularly well suited to this task. RNNs, while powerful, have difficulties with 'memory' due to the number of layers after multiple recursions; so a subset of RNNs, LSTMs allow retaining information for longer periods of time \cite{ko_lstm}.
-
-\cite{ko_lstm} show that an LSTM model, when trained on timeseries price data and sentiment data from news articles, can outperform a model trained on price data alone. Analysis of the literature suggests that SVM models, whilst the most popular \cite{al_literature_review} often underperformed in a financial setting, due to parameter optimisation being required \cite{al_literature_review,zhang_markov_model}
-
-Talk about the adam optimiser \note{According to Kingma et al., 2014, the method is "computationally efficient, has little memory requirement, invariant to diagonal rescaling of gradients, and is well suited for problems that are large in terms of data/parameters". \cite{adam_keras_api_docs,adam_paper}}
-
 \begin{figure*}[htbp]
     \centering
     \begin{minipage}{0.48\textwidth}
@@ -24,8 +18,47 @@ Talk about the adam optimiser \note{According to Kingma et al., 2014, the method
     \end{minipage}
 \end{figure*}
 
+A machine learning model was developed to predict stock prices using article data and sentiment features. The literature review conducted concluded that while Support Vector Machines (SVMs) are the most popular in the literature \cite{al_literature_review}, they often underperform in financial contexts due to their sensitivity to parameter tuning \cite{al_literature_review,zhang_markov_model}. \Cref{fig:nn,fig:rnn} illustrate the architectures of a typical feedforward neural network and a recurrent neural network (RNN). RNNs, are designed for time-series tasks and are thus well-suited for stock prediction. RNNs, while powerful, have difficulties with 'memory' due to the number of layers after multiple recursions. Long Short-Term Memory networks (LSTMs), a class of RNNs, address this by introducing memory cells with input, output, and forget gates, enabling more effective retention of information across time \cite{lstm_paper,ko_lstm}. Literature in this domain has demonstrated that LSTM models trained on both timeseries price data and sentiment analysis outperform models using price data alone \cite{heiden_lstm,ko_lstm}. 
+
+\note{reference the model training code} Model training was performed in a google collab environent, due to the increased computational resources made available. 
 
 
 
-\note{the events extracted from the news are usually quite sparse, resulting in unreliable
-and unsustainable predictive power \cite{zhang_markov_model} (bar for bar)} therefore we pivot and try and predict on the asx index which should address saprsity issues, rather than trying to predict voltaile single stocks 
+ Based on the LSTM model implementation 
+
+ Finance data was sourced from Yahoo Finance and merged with pre-collected sentiment data to form a unified dataframe, where each row corresponds to a single trading day. Three datasets were constructed: (1) a control set containing only historical price data, (2) a set combining price data with VADER sentiment scores, and (3) a set combining price data with BERT sentiment embeddings.
+
+A function, \code{train_test_split()}, was defined to segment each dataset into training and testing partitions. For training, a function \code{create_lstm_model(input_shape)} was defined to initialise and compile an LSTM model. The model consists of two stacked LSTM layers followed by a dense output layer, and was trained independently on each of the three datasets.
+The LSTM architecture and training utilised the following hyperparameters:
+\begin{itemize}
+    \item Optimiser: Adam \((\alpha = 0.001,\ \beta_1 = 0.9,\ \beta_2 = 0.999,\ \epsilon = 1 \times 10^{-7})\)
+\end{itemize}
+
+
+The Adam optimiser was used due to it being "computationally efficient, having little memory requirement... and is well suited for problems that are large in terms of data/parameters" \cite{adam_keras_api_docs,adam_paper}, in addition to being prevalent in existing online implementations. Sources suggest the use of these hyperparameters for the Adam optimiser \cite{hyperparameters,adam_keras_api_docs}
+
+The model architecture consisted of two LSTM layers: the first with 64 units and \texttt{tanh} activation, returning sequences; the second with 32 units, also using \texttt{tanh}. These layer sizes were based on the model structure presented in \cite{heiden_lstm}. A final dense output layer with a single neuron used \texttt{tanh} activation, rather than the paper's \texttt{relu} due to inconsistent convergence during model training. The model was trained using the mean squared error loss function with a batch size of 64. Rather than a fixed number of epochs, early stopping was applied to halt training if validation loss failed to improve over 10 consecutive epochs.
+
+To further prevent overfitting, the training set was internally split into a 70/30 training-validation partition, while a separate 30\% of the original data was retained for final testing. Loss versus epoch plots were generated to monitor model convergence, with \Cref{fig:loss_plot} showing that early stopping effectively halted training once performance plateaued. The models were trained to optimise validation loss, to ensure applicability to unseen data.
+
+Model performance was then compared across the three datasets— the control model, VADER (with price data) model, and BERT (with price data) model assess the impact of sentiment features on predictive accuracy.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/RAD_model_training_loss.pdf}
+    \caption{Training loss vs. epoch plot for the LSTM model example}
+    \label{fig:training_loss}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.75\textwidth]{figures/residuals_CBA.pdf}
+    \caption{Model Performance of CBA (Commonwealth Bank) LSTM model}
+    \label{fig:model_performance_cba}
+\end{figure}
+
+It was found that when attempting to predict the time-series price movement of individual stocks, sentiment data did not meaningfully improve predictive performance. This limitation was largely due to the sparsity of news coverage per stock. As shown in \Cref{fig:stock_code_distribution}, even the most frequently mentioned stock, \textit{ASX:BGD}, appeared in only 40 articles over a 16-month period—equating to just 2.5 articles per month. Such sparsity undermines the reliability and sustainability of sentiment-driven predictive models, a challenge also identified in literature \cite{zhang_markov_model}.
+
+To address this, rather than sourcing more data from additional platforms, the approach was pivoted towards predicting the broader ASX200 index. This shift not only mitigates the sparsity issue but also allows the model to capture macroeconomic sentiment and general political news, which are more consistently reported and likely to influence overall market trends.
+
+performing a similar analysis on just the asx200 index and incorperating articles that are in SmallCaps' 'hot topics' category (which is general news that pertains to an industry), and also mention stocks within the asx200. This way, we can include general politics and other news that may affect the index as a whole. 
+

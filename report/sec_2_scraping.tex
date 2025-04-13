@@ -14,14 +14,9 @@
 
 \subsection{Data Type Selection}
 
-Several data sources were considered for this investigation.
-
-The ASX market announcements \cite{asx_market_announcements} were initially examined. These are direct from the source and released frequently, but are often mundane or irrelevant. They are also provided in PDF format, which is not conducive to text mining using tools such as \code{BeautifulSoup}. Furthermore, usage is restricted under the ASX's terms of service \cite{asx_terms_of_use}.
-
-Social media platforms, particularly Twitter and Reddit, were also considered. These offer a large volume of data, albeit with short, unstructured content. Posts commonly include colloquial language, spelling errors, requiring extensive preprocessing \cite{kolasani_twitter_nn}; furthermore being less factual and trustworthy than other sources \cite{heiden_lstm}. Unlike financial journalists, social media users are not held to standards of factual accuracy, limiting the reliability of this source.
+Several data sources were considered for this investigation. ASX market announcements \cite{asx_market_announcements}, though frequent and direct, are often irrelevant, provided in PDF format unsuited to text mining, and restricted by ASX's terms of use \cite{asx_terms_of_use}. Social media platforms like Twitter and Reddit offer high-volume, unstructured content but suffer from slang, spelling errors \cite{kolasani_twitter_nn}, and questionable reliability \cite{heiden_lstm}.
 
 In contrast, financial news articles are typically factual, well-written, and longer in length. Web-based sources often provide a more structured format and accessible metadata, making them better suited to text mining. It is for these reasons that financial news articles were selected as the primary data source for this investigation. 
-
 
 \subsection{Website Selection}
 
@@ -43,10 +38,10 @@ Websites were assessed based on their suitability for article scraping, with key
     \begin{tabular}[c]{@{}c@{}}\textbf{Uses} \\ \textbf{Cloudflare?}\end{tabular} &
     \begin{tabular}[c]{@{}c@{}}\textbf{General Notes}\end{tabular} \\
     \midrule
-    \href{https://www.marketindex.com.au/}{Market Index} & No & Yes & No & Company tags on articles \\
-    \href{https://au.finance.yahoo.com/}{Yahoo Finance} & No & No & No & no mentioned stock labelling. General politics also included which is difficult to relate to individual stocks \\
+    \href{https://www.marketindex.com.au/}{Market Index} & No & Yes & No &  \\
+    \href{https://au.finance.yahoo.com/}{Yahoo Finance} & No & No & No & \\
     \rowcolor{rowgreen}
-    \href{https://tradingeconomics.com/}{Trading Economics} & Yes & Yes & No & General politics and economics also included — would require filtering (unstructured) \\
+    \href{https://tradingeconomics.com/}{Trading Economics} & Yes & Yes & No & Highly unstructured. General politics and economics also included — would require extensive filtering \\
     \href{https://www.afr.com/}{Financial Review} & No & No & No &  \\
     \href{https://www.fool.com.au/}{The Motley Fool} & No & Yes & No &  \\
     \href{https://www.smh.com.au/}{Sydney Morning Herald} & No & No & No &  \\
@@ -54,12 +49,12 @@ Websites were assessed based on their suitability for article scraping, with key
     \rowcolor{rowgreen}
     \href{https://www.abc.net.au/news/}{ABC News} & Yes & Yes & No & Regular news mixed with financial news, difficult to use, untagged stock market \\
     \rowcolor{rowgreen}
-    \href{https://smallcaps.com.au/}{Small Caps} & Yes & Yes & No & Sitemap highly conducive to scraping. Stock codes provided in articles. All about stocks — no general politics. Static web content (use BeautifulSoup) \\
-    \href{https://www.morningstar.com.au/}{Morning Star} & No & Yes & No & No sitemap provided \\
+    \href{https://smallcaps.com.au/}{Small Caps} & Yes & Yes & No & Sitemap highly conducive to scraping. Stock codes provided in articles. Static web content also conducive for scraping \\
+    \href{https://www.morningstar.com.au/}{Morning Star} & No & Yes & No & \\
     \rowcolor{rowgreen}
     \href{https://www.australianstockreport.com.au/}{Australian Stock Report} & Yes & Yes & No & Unstructured in comparison to other article sites \\
     \rowcolor{rowgreen}
-    \href{https://stockhead.com.au/}{Stock Head} & Yes & Yes & No & Great sitemap but no list of stock codes in article \\
+    \href{https://stockhead.com.au/}{Stock Head} & Yes & Yes & No & Sitemap provided that is conducive to scraping, but no list of stock codes provided in each article \\
     \href{https://www.theaustralian.com.au/}{The Australian} & No & No & No &  \\
     \href{https://hotcopper.com.au/}{Hot Copper} & No & Yes & No &  \\
     \bottomrule
@@ -72,19 +67,32 @@ Websites were assessed based on their suitability for article scraping, with key
 
 \textit{Small Caps} was selected due to its static structure, enabling lightweight scraping using \code{BeautifulSoup}. All content is stock-focused, removing the need for filtering, and articles are consistently tagged with stock codes, simplifying parsing. However, using a single source limits dataset diversity and may bias coverage towards small-cap companies, or a particular sector, or reflect the opinions of a few authors. 
 
-\begin{figure}[h]
+\begin{figure}[htbp]
     \centering
-    \includegraphics[height=200px]{figures/example_article.png} % Image filename
-    \centering
-    \caption{Example Article \cite{example_smallcaps_article}, containing fields such as title, author, date, and stock codes} % Caption
-    \label{fig:example_article} % Label
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/example_article.png}
+        \caption{Example \textit{SmallCaps} Article \cite{example_smallcaps_article}, containing fields such as title, author, date, and list of mentioned stock codes}
+        \label{fig:example_article}
+    \end{minipage}\hfill
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/xml_sitemap.png}
+        \caption{\textit{SmallCaps'} XML "Sitemap of Sitemaps"}
+        \label{fig:xml_sitemap}
+    \end{minipage}\hfill
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/xml_sub_sitemap.png}
+        \caption{\textit{SmallCaps'} XML Sitemap Example}
+        \label{fig:xml_sub_sitemap}
+    \end{minipage}
 \end{figure}
- 
 \clearpage
 
 \subsection{Web Scraping}
 
-Although \code{robots.txt} did not specify a scraping frequency, throttling was implemented to reduce server load as a matter of ethical practice. \textit{Small Caps} was selected in part due to its exposed XML sitemap, which simplifies article discovery by listing URLs directly—avoiding the need to emulate navigation behaviour using heavier tools like \textit{Selenium}. Instead, the sitemap is parsed using \code{lxml} with \code{BeautifulSoup}, which is significantly faster and less resource-intensive for static content.
+Although \code{robots.txt} did not specify a crawl delay, requests were throttled to one every 3 seconds as an ethical measure to reduce server load. \textit{Small Caps} was selected in part due to its exposed XML sitemap, which simplifies article discovery by listing URLs directly—avoiding the need to emulate navigation behaviour using heavier tools like \textit{Selenium}. Instead, the sitemap is parsed using \code{lxml} with \code{BeautifulSoup}, which is significantly faster and less resource-intensive for static content.
 
 Given the site's predictable structure and absence of JavaScript rendering, \textit{Selenium} was deemed unnecessary. This reduces scraping complexity and improves runtime efficiency. \cref{code:xml_scrape_function} shows the sitemap scraping function, which extracts article metadata including title and last-modified date. As shown in \cref{code:xml_scrape_call}, each paginated sitemap is queried sequentially, filtered for article URLs, and written to a local CSV file. This storage format was chosen for ease of inspection and downstream processing.
 
@@ -111,10 +119,6 @@ Given the site's predictable structure and absence of JavaScript rendering, \tex
     \captionof{table}{Number of Observations per Year As reported by the XML Sitemap Last Modified Date}
     \label{tab:xml_article_counts}
 \end{minipage}
-
-
-
-
 
 \begin{table}[h]
     \centering
@@ -148,11 +152,10 @@ To allow for incremental scraping and avoid reprocessing, existing scraped artic
 
 
 
-The contents of the HTML were analysed and parsed into a dictionary capturing the title, author, date, sector, stock codes, and the article body, as demonstrated in the listing below. \code{BeautifulSoup} was used to extract data from the relevant tags. Below is an example output from the parsing process:
+The contents of the HTML were analysed and parsed into a dictionary capturing the title, author, date, sector, stock codes, and the article body, as demonstrated in the listing below. \code{BeautifulSoup} was used to extract data from the relevant tags. \Cref{tab:parsed_dict} is an example output from the parsing process
 
+\subsection{Additional Data Collection}
 
-    \begin{minipage}{0.56\textwidth}
-    \centering
-    
-\end{minipage}
-    
+For stock price prediction, the time series price data for each stock mentioned in the articles was required.
+
+\note{include the listing of collection from yfinance as an appendix}

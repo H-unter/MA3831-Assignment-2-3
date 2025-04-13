@@ -4,8 +4,7 @@
 
 \subsection{Exploratory Data Analysis}
 
-
-\textbf{Sample Distribution}
+\subsubsection{Sample Distribution}
 
 \Cref{tab:parsed_dict} shows the structure of the dataset. A total of \note{1962} articles were collected from Smallcaps. \Cref{fig:articles_per_month} shows the time distribution over time, covering all of 2024, late 2023, and early 2025. This time window may be a limitation, as older articles could exhibit different characteristics not captured in the current dataset. \Cref{fig:document_length_distribution} depicts the document length distribution, with a mean word count of \note{462}. The dataset size and document length are sufficient for training machine learning models, particularly when using pretrained transformers such as BERT \cite{bert_paper} or FinBERT \cite{prosusai_finbert}.
 
@@ -33,25 +32,34 @@
     \end{minipage}
 \end{figure}
 
-\textbf{Text Corpus}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{figures/top_stock_codes.pdf} % Image filename
+    \centering
+    \caption{Top mentioned stock codes in scraped articles} % Caption
+    \label{fig:stock_code_distribution} % Label
+\end{figure}
+ 
+
+\subsubsection{Text Corpus}
 
 \Cref{fig:top_words} shows the most common words in the articles, whilst removing stop words using \code{Sklearn CountVectorizer}. It can be seen that past general terms like company, project and asx, mining and resource terms are the most prevailant in the corpus, further demonstrating the mining sampling bias highlighted in \cref{fig:sector_industry_distribution}
 
-\Cref{fig:pca} shows the PCA biplot of the TF-IDF vectorised article corpus, generated using \code{SKlearn}'s \code{PCA} and \code{TfidfVectorizer} modules. Lemmatisation was applied via \code{nltk} to reduce term dimensionality. It can be seen that even with two components, the plot shows some level of clustering by sector, suggesting that term usage differs meaningfully between them.
+\Cref{fig:pca} shows the PCA biplot of the TF-IDF vectorised article corpus, generated using \code{SKlearn}'s \code{PCA} and \code{TfidfVectorizer} modules. It can be seen that even with two components, the plot shows some level of clustering by sector, suggesting that term usage differs meaningfully between them, suggesting that classification of articles by sector is plausible. 
 
 
 \begin{figure}[htbp]
     \centering
-    \begin{minipage}{0.48\textwidth}
+    \begin{minipage}{0.43\textwidth}
         \centering
         \includegraphics[width=\linewidth]{figures/top_words_in_articles.pdf}
         \caption{Frequency of the top words in the scraped articles}
         \label{fig:top_words}
     \end{minipage}\hfill
-    \begin{minipage}{0.48\textwidth}
+    \begin{minipage}{0.43\textwidth}
         \centering
         \includegraphics[width=\linewidth]{figures/pca_biplot_filtered_industries.pdf}
-        \caption{Principle Component Analysis Biplot of the TF-IDF vectorised article corpus (with lemmatisation applied)}
+        \caption{Principle Component Analysis Biplot of the TF-IDF vectorised article corpus}
         \label{fig:pca}
     \end{minipage}
 \end{figure}
@@ -63,33 +71,34 @@
 
 
 
-\subsection{Sentiment Analysis}
+\subsection{Feature Extraction}
 
-We model the sentiment of an article using the VADER (Valence Aware Dictionary and sEntiment Reasoner)\cite{vader_paper}, as this has shown to having promising results in a similar setting, as found by \cite{heiden_lstm}. Implementation of VADER can be seen in \cref{code:vader}, with the implementation inspired assisted by online article \cite{geeksforgeeks_vader}
+\subsubsection{Sentiment Analysis}
+
+Article sentiment is modelled using VADER (Valence Aware Dictionary and sEntiment Reasoner) \cite{vader_paper}, which has shown promising results in similar contexts \cite{heiden_lstm}. The implementation, shown in \cref{code:vader}, was adapted with reference to \cite{geeksforgeeks_vader}. Lemmatisation was considered, as done by Heiden \cite{heiden_lstm}, but was ultimately excluded. The \code{nltk} implementation reduced performance, as VADER relies on common word forms that may differ from lemmatised tokens, reducing its ability to match words to sentiments.
 
 \lstinputlisting[language=Python, caption=VADER sentiment analysis of article, label=code:vader]{../code/report_code_chunks/sentiment_vader.py}
 
-VADER's rule-based approach relies on fixed lexicons and doesn't fully capture the context-dependent sentiment embedded in text, whereas BERT's deep contextual embeddings and bidirectional architecture captures nuanced meanings in multi-word expressions, and been pre-trained on large-scale text, including Wikipedia , BERT can recognise \note{swap up the wording here a bit}
-proper nouns and entities, making it effective for
-disambiguating stock names, tickers, and countries  \cite{bert_paper}. FinBERT is a domain-specific adaptation of the BERT model, fine-tuned on financial texts to accurately determine the sentiment expressed in this particular context \cite{araci_finbert}. This model was retrieved using the huggingface library \cite{prosusai_finbert}. 
+VADER's rule-based approach relies on a fixed lexicon and lacks the capacity to capture context-dependent sentiment. In contrast, BERT leverages deep contextual embeddings and a bidirectional architecture to model nuanced meaning across multi-word expressions. Pretrained on large-scale corpora such as Wikipedia, BERT can recognise proper nouns and entities, making it effective for disambiguating stock names, tickers, and countries \cite{bert_paper}. FinBERT is a domain-specific variant, fine-tuned on financial texts to better capture sentiment in this context \cite{araci_finbert}, and was accessed via the HuggingFace library \cite{prosusai_finbert}. However, BERT-based models require labelled data for fine-tuning, making large-scale training infeasible without extensive annotation. To address this, we utilise the \texttt{finbert-tone} pretrained transformer, trained on 10{,}000 manually annotated sentences (positive, negative, neutral) from financial analyst reports \cite{finbert_tone_sentiment}.
 
-While this sounds better, it relies on the data being labelled, making training on a large corupus of data unfeasible without labourious labelling. We therefore utilise the finbert-tone pretrained transformer which is the FinBERT model trained on 10,000 manually annotated documents (positive, negative, neutral) sentences from analyst reports \cite{finbert_tone_sentiment}.
 
 \lstinputlisting[language=Python, caption=BERT sentiment analysis of articles, label=code:bert]{../code/report_code_chunks/sentiment_bert.py}
 
-It is evident from \cref{fig:sentiment_distributions} that VADER and BERT has a high skew towards positive sentiment, potentially indicating that the authors of smallcaps are averse to publishing negative news. \Cref{fig:sentiment_heatmap} shows that other than a small amount of outliers, the BERT and VADER sentiment models are highly correlated.
+\Cref{fig:sentiment_distributions} shows a strong skew towards positive sentiment in both VADER and BERT outputs, suggesting Smallcaps authors may be less inclined to publish negative news. Despite architectural differences, \Cref{fig:sentiment_heatmap} shows high correlation between the two models, with few outliers. VADER provides more granularity, outputting separate positive, negative, and neutral scores along with a compound score. In contrast, the \texttt{finbert-tone} model produces a single sentiment label and associated score. These different sentiment outputs will be compared and contrasted in future modelling to asses the difference in their predictive power.
+
+
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=\linewidth]{figures/sentiment_distribution.pdf} % Image filename
     \centering
-    \caption{Distribution of Sentiment Labels and scores for VADER and BERT} % Caption
+    \caption{Distribution of Sentiment Labels for the source data and scores for VADER and BERT} % Caption
     \label{fig:sentiment_distributions} % Label
 \end{figure}
 
 \begin{figure}[h]
     \centering
-    \includegraphics[height=200px]{figures/sentiment_heatmap.pdf} % Image filename
+    \includegraphics[height=150px]{figures/sentiment_heatmap.pdf} % Image filename
     \centering
     \caption{Heatmap Comparison of sentiment scores of VADER vs BERT} % Caption
     \label{fig:sentiment_heatmap} % Label
