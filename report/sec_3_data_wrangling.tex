@@ -2,13 +2,11 @@
 
 \section{Data Wrangling and Feature Extraction}
 
-\subsection{Exploratory Data Analysis}
+\subsection{Exploratory Data Analysis - Sample Distribution}
 
-\subsubsection{Sample Distribution}
+\Cref{tab:parsed_dict} shows the structure of the dataset. A total of 1962 articles were collected from Smallcaps. \Cref{fig:articles_per_month} shows the time distribution over time, covering all of 2024, late 2023, and early 2025. This time window may be a limitation, as older articles could exhibit different characteristics not captured in the current dataset. \Cref{fig:document_length_distribution} depicts the document length distribution, with a mean word count of 462. The dataset size and document length are sufficient for training machine learning models, particularly when using pretrained transformers such as BERT \cite{bert_paper} or FinBERT \cite{prosusai_finbert}.
 
-\Cref{tab:parsed_dict} shows the structure of the dataset. A total of \note{1962} articles were collected from Smallcaps. \Cref{fig:articles_per_month} shows the time distribution over time, covering all of 2024, late 2023, and early 2025. This time window may be a limitation, as older articles could exhibit different characteristics not captured in the current dataset. \Cref{fig:document_length_distribution} depicts the document length distribution, with a mean word count of \note{462}. The dataset size and document length are sufficient for training machine learning models, particularly when using pretrained transformers such as BERT \cite{bert_paper} or FinBERT \cite{prosusai_finbert}.
-
-\Cref{code:article_Augmentation} shows the addition of industry labels to articles using a list of stock codes retrieved from the ASX website \cite{asx_industry_labels}. These labels, along with those reported by Smallcaps, are shown in \cref{fig:sector_industry_distribution}. Most articles fall within the mining sector, indicating a sample bias. While ASX labels offer greater context, the larger amount of labels introduces sparsity, with several sectors having very few observations.
+Detailed earlier was the addition of the sector as reported by the ASX \cite{asx_industry_labels} (\Cref{code:article_Augmentation}). These labels, along with those reported by Smallcaps, are shown in \cref{fig:sector_industry_distribution}. This reveals that most articles fall within the mining sector, indicating a sample bias. While ASX labels offer greater context, the larger amount of labels introduces sparsity, with several sectors having very few observations.
 
 \begin{figure}[ht]
     \begin{minipage}{0.42\textwidth}
@@ -41,11 +39,11 @@
 \end{figure}
  
 
-\subsubsection{Text Corpus}
+\subsection{Exploratory Data Analysis - Text Corpus}
 
 \Cref{fig:top_words} shows the most common words in the articles, whilst removing stop words using \code{Sklearn CountVectorizer}. It can be seen that past general terms like company, project and asx, mining and resource terms are the most prevailant in the corpus, further demonstrating the mining sampling bias highlighted in \cref{fig:sector_industry_distribution}
 
-\Cref{fig:pca} shows the PCA biplot of the TF-IDF vectorised article corpus, generated using \code{SKlearn}'s \code{PCA} and \code{TfidfVectorizer} modules. It can be seen that even with two components, the plot shows some level of clustering by sector, suggesting that term usage differs meaningfully between them, suggesting that classification of articles by sector is plausible. 
+\Cref{fig:pca} shows the PCA biplot of the TF-IDF vectorised article corpus, generated using \code{SKlearn}'s \code{PCA} and \code{TfidfVectorizer} modules. It can be seen that even with two components, the plot shows some level of clustering by sector, suggesting that term usage differs meaningfully between them, suggesting that classification of articles by sector is plausible, but is outside the scope of this investigation. 
 
 
 \begin{figure}[htbp]
@@ -75,16 +73,16 @@
 
 \subsubsection{Sentiment Analysis}
 
-Article sentiment is modelled using VADER (Valence Aware Dictionary and sEntiment Reasoner) \cite{vader_paper}, which has shown promising results in similar contexts \cite{heiden_lstm}. The implementation, shown in \cref{code:vader}, was adapted with reference to \cite{geeksforgeeks_vader}. Lemmatisation was considered, as done by Heiden \cite{heiden_lstm}, but was ultimately excluded. The \code{nltk} implementation reduced performance, as VADER relies on common word forms that may differ from lemmatised tokens, reducing its ability to match words to sentiments.
+Article sentiment is modelled using VADER (Valence Aware Dictionary and sEntiment Reasoner) \cite{vader_paper}, which has shown promising results in similar contexts \cite{heiden_lstm}. The implementation, shown in \cref{code:vader}, was adapted with reference to \cite{geeksforgeeks_vader}. Lemmatisation was considered, as done by Heiden \cite{heiden_lstm}, but was ultimately excluded. The \code{nltk} implementation reduced performance, as VADER relies on common word forms that may differ from lemmatised tokens, reducing its ability to match words to sentiments. The implementation of VADER is shown in \Cref{code:vader}. 
 
 \lstinputlisting[language=Python, caption=VADER sentiment analysis of article, label=code:vader]{../code/report_code_chunks/sentiment_vader.py}
 
-VADER's rule-based approach relies on a fixed lexicon and lacks the capacity to capture context-dependent sentiment. In contrast, BERT leverages deep contextual embeddings and a bidirectional architecture to model nuanced meaning across multi-word expressions. Pretrained on large-scale corpora such as Wikipedia, BERT can recognise proper nouns and entities, making it effective for disambiguating stock names, tickers, and countries \cite{bert_paper}. FinBERT is a domain-specific variant, fine-tuned on financial texts to better capture sentiment in this context \cite{araci_finbert}, and was accessed via the HuggingFace library \cite{prosusai_finbert}. However, BERT-based models require labelled data for fine-tuning, making large-scale training infeasible without extensive annotation. To address this, we utilise the \texttt{finbert-tone} pretrained transformer, trained on 10{,}000 manually annotated sentences (positive, negative, neutral) from financial analyst reports \cite{finbert_tone_sentiment}.
+VADER's rule-based approach relies on a fixed lexicon and lacks the capacity to capture context-dependent sentiment. In contrast, BERT leverages deep contextual embeddings and a bidirectional architecture to model nuanced meaning across multi-word expressions. Pretrained on large-scale text such as Wikipedia, BERT can recognise proper nouns and entities, making it effective for disambiguating stock names, tickers, and countries \cite{bert_paper}. FinBERT is a domain-specific variant, fine-tuned on financial texts to better capture sentiment in this context \cite{araci_finbert}, and was accessed via the HuggingFace library \cite{prosusai_finbert}. However, BERT-based models require labelled data for fine-tuning, making large-scale training infeasible without extensive annotation. To address this, we utilise the \texttt{finbert-tone} pretrained transformer, trained on 10{,}000 manually annotated sentences (positive, negative, neutral) from financial analyst reports \cite{finbert_tone_sentiment}. \Cref{code:bert} shows the implementation of the \texttt{finbert-tone} model.
 
 
 \lstinputlisting[language=Python, caption=BERT sentiment analysis of articles, label=code:bert]{../code/report_code_chunks/sentiment_bert.py}
 
-\Cref{fig:sentiment_distributions} shows a strong skew towards positive sentiment in both VADER and BERT outputs, suggesting Smallcaps authors may be less inclined to publish negative news. Despite architectural differences, \Cref{fig:sentiment_heatmap} shows high correlation between the two models, with few outliers. VADER provides more granularity, outputting separate positive, negative, and neutral scores along with a compound score. In contrast, the \texttt{finbert-tone} model produces a single sentiment label and associated score. These different sentiment outputs will be compared and contrasted in future modelling to asses the difference in their predictive power.
+\Cref{fig:sentiment_distributions} shows a strong skew towards positive sentiment in both VADER and BERT outputs, suggesting \textit{SmallCaps} authors may be less inclined to publish news with negative sentiment. Despite architectural differences, \Cref{fig:sentiment_heatmap} shows high correlation between the two models, with few outliers. VADER provides more granularity, outputting separate positive, negative, and neutral scores along with a compound score. In contrast, the \texttt{finbert-tone} model produces a single sentiment label and associated score. These different sentiment outputs will be compared and contrasted in future modelling to asses the difference in their predictive power.
 
 
 

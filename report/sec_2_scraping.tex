@@ -16,13 +16,13 @@
 
 Several data sources were considered for this investigation. ASX market announcements \cite{asx_market_announcements}, though frequent and direct, are often irrelevant, provided in PDF format unsuited to text mining, and restricted by ASX's terms of use \cite{asx_terms_of_use}. Social media platforms like Twitter and Reddit offer high-volume, unstructured content but suffer from slang, spelling errors \cite{kolasani_twitter_nn}, and questionable reliability \cite{heiden_lstm}.
 
-In contrast, financial news articles are typically factual, well-written, and longer in length. Web-based sources often provide a more structured format and accessible metadata, making them better suited to text mining. It is for these reasons that financial news articles were selected as the primary data source for this investigation. 
+In contrast, financial news articles are typically factual, well-written, and longer in length. Web-based sources often provide a more structured format and accessible metadata, making them better suited to text mining. It is for these reasons that financial news articles were selected as the primary data source for this investigation.
 
 \subsection{Website Selection}
 
 \Cref{tab:scraping_websites} shows the comparison of various websites that contain financial and market-related articles, evaluating their suitability for scraping. Copyright is a key legal consideration when using original written works. Under Section 113P of the Copyright Act 1968, Australian copyright law permits educational institutions to copy and communicate works for educational purposes under the 'fair dealing' provisions \cite{copyright_act}.
 
-Websites were assessed based on their suitability for article scraping, with key criteria including explicit permission in terms of use, presence of disallow/allow directives in \code{robots.txt}, use of scraping inhibiting in the form of Cloudflare \cite{does_it_use_cloudflare}, and article structure (e.g. presence of stock codes or site metadata). As shown in \Cref{tab:scraping_websites}, many domains impose legal or technical restrictions on automated data collection, presenting ethical limitations to their use. For example, scraping from websites that explicitly disallow it in their terms of service may breach legal and institutional ethical standards. From a sampling design perspective, sites with structured article metadata and consistent tagging (e.g. Trading Economics, Stock Head) were preferred to ensure replicable and unbiased data collection. Conversely, general news outlets with mixed content and unstructured articles (e.g. ABC News, Yahoo Finance) were excluded due to increased noise and ambiguity in topic association.
+Websites were assessed based on their suitability for article scraping, with key criteria including explicit permission in terms of use, presence of disallow/allow directives in \code{robots.txt}, use of scraping inhibiting in the form of Cloudflare \cite{does_it_use_cloudflare}, and article structure (e.g. presence of stock codes or site metadata). As shown in \Cref{tab:scraping_websites}, many domains impose restrictions on automated data collection, and were therefore ruled out. From a sampling design perspective, sites with structured article metadata and consistent tagging (e.g. Trading Economics, Stock Head) were preferred as the metadata tagging could be used for filtering relevant articles and linking content to specific stocks or sectors. Conversely, general news outlets with mixed content and unstructured articles (e.g. ABC News, Yahoo Finance) were excluded due to increased noise and ambiguity in topic association.
 
 \definecolor{rowgreen}{HTML}{D9EAD3} 
 
@@ -65,7 +65,13 @@ Websites were assessed based on their suitability for article scraping, with key
     
 % limitations of the web crawler and the harvested data
 
-\textit{Small Caps} was selected due to its static structure, enabling lightweight scraping using \code{BeautifulSoup}. All content is stock-focused, removing the need for filtering, and articles are consistently tagged with stock codes, simplifying parsing. However, using a single source limits dataset diversity and may bias coverage towards small-cap companies, or a particular sector, or reflect the opinions of a few authors. 
+A comprehensive summary of the websites considered is shown in \cref{tab:scraping_websites}. It was concluded that the \textit{Small Caps} website was the most suitable option for scraping. This is due to its static structure, its comprehensive sitemap, and lack of restrictions on scraping. The content is predominantly stock-focused, removing the need for filtering, and articles are consistently tagged with stock codes, providing useful metadata for downstream processing. However, using a single source limits dataset diversity and may bias coverage towards small-cap companies, or a particular sector, or reflect the opinions of a few authors. This drawback could not be easily addressed, as no websites could be found that met the criteria. The possibility of sample bias is investigated and addressed in later sections.
+
+\newpage
+
+\clearpage
+
+
 
 \begin{figure}[htbp]
     \centering
@@ -88,15 +94,14 @@ Websites were assessed based on their suitability for article scraping, with key
         \label{fig:xml_sub_sitemap}
     \end{minipage}
 \end{figure}
-\clearpage
 
 \subsection{Web Scraping}
 
-Although \code{robots.txt} did not specify a crawl delay, requests were throttled to one every 3 seconds as an ethical measure to reduce server load. \textit{Small Caps} was selected in part due to its exposed XML sitemap, which simplifies article discovery by listing URLs directly—avoiding the need to emulate navigation behaviour using heavier tools like \textit{Selenium}. Instead, the sitemap is parsed using \code{lxml} with \code{BeautifulSoup}, which is significantly faster and less resource-intensive for static content.
+\textit{Small Caps} was selected in part due to its XML sitemap, which simplifies scraping by directly listing article URLs—removing the need to emulate site navigation using heavier tools like \textit{Selenium}. Instead, the sitemap was parsed using \code{lxml} with \code{BeautifulSoup}, which is faster and less resource-intensive for static content. Avoiding \textit{Selenium} also improves resilience to minor site structure changes and avoids issues with popups, though major changes to article page layouts would still require code updates. The \code{lxml} parser is both fast and capable of parsing XML and HTML, making it well-suited for this approach which involves processing both sitemap files and article content \cite{beautiful_soup_documentation}.
 
-Given the site's predictable structure and absence of JavaScript rendering, \textit{Selenium} was deemed unnecessary. This reduces scraping complexity and improves runtime efficiency. \cref{code:xml_scrape_function} shows the sitemap scraping function, which extracts article metadata including title and last-modified date. As shown in \cref{code:xml_scrape_call}, each paginated sitemap is queried sequentially, filtered for article URLs, and written to a local CSV file. This storage format was chosen for ease of inspection and downstream processing.
+Although \code{robots.txt} did not specify a crawl delay, all requests in this scraping process were throttled to one every 3 seconds as an ethical measure to reduce server load. \cref{code:xml_scrape_function} shows the sitemap scraping function, which extracts article metadata including title and last-modified date. As shown in \cref{code:xml_scrape_call}, each paginated sitemap is queried sequentially, filtered for article URLs, and written to a local CSV file. This storage format was chosen for ease of inspection and for easy loading into pandas using \code{pd.read_csv}. 
 
-\Cref{tab:xml_article_counts} shows the temporal distribution of articles scraped, based on the last modified date in the sitemap.
+\Cref{tab:xml_article_counts} shows the distribution of articles scraped, based on the last modified date in the sitemap.
 
 \begin{minipage}{0.48\textwidth}
     \lstinputlisting[language=Python, caption=Definition of xml sitemap scraping function, label=code:xml_scrape_function]{../code/report_code_chunks/xml_scrape_function.py}
@@ -120,6 +125,10 @@ Given the site's predictable structure and absence of JavaScript rendering, \tex
     \label{tab:xml_article_counts}
 \end{minipage}
 
+Scraping the XML sitemaps results in a complete list of article URLs published on \textit{SmallCaps}. Using the \code{requests} library and \code{BeautifulSoup} with the \code{lxml} parser, each article URL was parsed for content. As shown in \cref{code:article_scraping_function}, relevant fields were used to extract metadata into a dictionary containing the title, author, date, sector, stock codes, and body text. \Cref{tab:parsed_dict} shows an example output from this process - where each of these keys were then converted into columns of a pandas dataframe.
+
+To allow for incremental scraping and avoid reprocessing, existing scraped articles were saved via CSV and excluded in subsequent runs. Requests were throttled with a 3-second delay between each fetch to reduce server load. The scraping code can be seen in \cref{code:article_scrape_function_call}. 
+
 \begin{table}[h]
     \centering
     \begin{tabular}{rl}
@@ -138,24 +147,20 @@ Given the site's predictable structure and absence of JavaScript rendering, \tex
     \label{tab:parsed_dict}
 \end{table}
 
-
-Once the sitemap URLs were gathered, article content was scraped individually; once again using the \code{requests} library and \code{BeautifulSoup} with the \code{lxml} parser. The article scraping function is shown in \cref{code:article_scraping_function}, where it is seen that the target data with the key metadata resided within HTML containers, enabling reliable extraction of fields such as article title, author, date, sector, body text, and stock codes. 
-
-To allow for incremental scraping and avoid reprocessing, existing scraped articles were tracked via CSV and excluded in subsequent runs. Requests were throttled with a 3-second delay between each fetch to reduce server load. Output was stored locally in a raw CSV format, enabling later augmentation and processing while keeping the collection process transparent and reproducible. The scraping code can be seen in \cref{code:article_scrape_function_call}. 
-
 \lstinputlisting[language=Python, caption=Article Scraping function, label=code:article_scraping_function]{../code/report_code_chunks/article_scrape_function.py}
+
+\newpage
 
 \lstinputlisting[language=Python, caption=Code to Parse Websites in xml Sitemap, label=code:article_scrape_function_call]{../code/report_code_chunks/xml_scrape_call.py}
 
 
+\subsection{Data Augmentation}
+
+\Cref{code:article_Augmentation} supplements the broad sector labels from \textit{SmallCaps} with more specific ASX industry data \cite{asx_industry_labels}. Each stock code was matched to its ASX-reported industry. To reduce sparsity and simplify analysis, a custom mapping was created to group similar industries together—for example, 'Food, Beverage \& Tobacco' and 'Household \& Personal Products' were both mapped to 'Consumer Staples' \Cref{fig:sector_industry_distribution} shows the resulting sector breakdown.
 
 
-
-
-The contents of the HTML were analysed and parsed into a dictionary capturing the title, author, date, sector, stock codes, and the article body, as demonstrated in the listing below. \code{BeautifulSoup} was used to extract data from the relevant tags. \Cref{tab:parsed_dict} is an example output from the parsing process
 
 \subsection{Additional Data Collection}
 
-For stock price prediction, the time series price data for each stock mentioned in the articles was required.
+For stock price prediction, time series data for each stock mentioned in the articles was required. Due to the complex nested structure and column types, the data was saved as a Parquet file rather than CSV to preserve pandas data types. The \code{yfinance} library was used, with the documentation used to limit the amount of requests when requesting from the yahoo finance API. The source code can be seen in \cref{code:yfinance}
 
-\note{include the listing of collection from yfinance as an appendix}

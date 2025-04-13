@@ -13,5 +13,4 @@ sentiment_scores = articles_df['document'].apply(get_vader_sentiment_scores)
 sentiment_scores_df = sentiment_scores.apply(pd.Series).rename(
     columns={'pos': 'vader_positive', 'neg': 'vader_negative', 'neu': 'vader_neutral', 'compound': 'vader_compound'}
 )
-# add the new features to articles_df
 articles_df = pd.concat([articles_df, sentiment_scores_df], axis=1)

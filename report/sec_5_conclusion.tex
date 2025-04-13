@@ -1,5 +1,8 @@
+\newpage
+
 \section{Conclusion}
 
-\cite{ko_lstm} did a similar investigation and found that incorperating sentiments from not only news, but forum posts was found to improve the performance of stock price prediction models. It is therefore reccommended that additional sources of data are considered in future work, whilst considering copyright, and terms of use of these sources. More sources would address sentiment sparsity for a single source, and also reduce bias in the training data.
+This project found that adding sentiment data did not improve the predictive power of the model, than the control model that had no sentiments. One reason for this was the lack of article coverage per stock, which made the sentiment data too sparse to be useful in many cases. Training a separate model for each stock worked well, as it allowed the model to learn each stock’s unique patterns, but compounded the spasity issue.
 
-Future studies should increase the scope of this investigation to scrape more websites. More methods of stock price prediction should also be explored such as SVM and RF.
+Future work should include other data sources like forums or social media, which can offer faster and more frequent sentiment signals. Prior studies, such as Ko and Chang \cite{ko_lstm}, showed that this can help improve model accuracy. When considering new sources, the same care must be taken to consider copyright and usage terms. Finally, testing other model types like SVMs or random forests could help assess whether simpler models perform better in smaller or noisier datasets.
+
